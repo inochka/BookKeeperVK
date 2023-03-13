@@ -1,6 +1,6 @@
 import pytest
 
-from repository.abstract_repository import AbstractRepository
+from core.repository.abstract_repository import AbstractRepository
 
 # видимо, эту щтуку корректно запускать только из консоли непосредственно через pytest
 

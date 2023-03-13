@@ -5,7 +5,7 @@
 from itertools import count
 from typing import Any
 
-from repository.abstract_repository import AbstractRepository, T
+from core.repository.abstract_repository import AbstractRepository, T
 
 
 class MemoryRepository(AbstractRepository[T]):
@@ -46,5 +46,6 @@ class MemoryRepository(AbstractRepository[T]):
 
     def delete(self, pk: int) -> None:
         self._container.pop(pk)
-        # то есть ключи не меняем при удавлении, так как не факт, что удаляем из конца, и необязательно они у нас
+        # то есть ключи не меняем при удавлении, так как не факт,
+        # что удаляем из конца, и необязательно они у нас
         # идут непрерывно, какие-то значения могут быть пропущены

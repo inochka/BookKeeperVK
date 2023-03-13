@@ -5,8 +5,8 @@ from inspect import isgenerator
 
 import pytest
 
-from models.category import Category
-from repository.memory_repository import MemoryRepository
+from core.models.category import Category
+from core.repository.memory_repository import MemoryRepository
 
 
 @pytest.fixture

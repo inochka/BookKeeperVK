@@ -6,10 +6,11 @@ from dataclasses import dataclass, field
 from datetime import datetime
 
 """
-Используя декоратор @dataclass мы автоматически получаем класс, с реализованными методами __init__, __repr__, __str__ и __eq__
-
+Используя декоратор @dataclass мы автоматически получаем класс,
+с реализованными методами __init__, __repr__, __str__ и __eq__
 объявление анотации добавляет в __init__ строку типа self.amount = amount
 """
+
 
 @dataclass(slots=True)
 class Expense:
