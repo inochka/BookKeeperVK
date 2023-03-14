@@ -6,7 +6,6 @@ from core.models.category import Category
 from core.models.budget import Budget
 from typing import Any
 
-
 class SQLiteRepository(AbstractRepository[T]):
 
     db_file: str
@@ -54,7 +53,7 @@ class SQLiteRepository(AbstractRepository[T]):
             cur.execute("SELECT * FROM " + self.table_name +
                         " WHERE pk =?;", (pk,))
             rows = cur.fetchall()
-            print(rows)
+            #print(rows)
 
         con.close()
 
@@ -81,7 +80,7 @@ class SQLiteRepository(AbstractRepository[T]):
                 cond = " WHERE"
                 i = 0
                 for field in (list(self.fields.keys()) + ["pk"]):
-                    print(field)
+                    #print(field)
                     if where.get(field) is not None:
                         if i != 0:
                             cond += " AND "
@@ -112,7 +111,7 @@ class SQLiteRepository(AbstractRepository[T]):
 
         # проверяем, чтобы ключ был неотрицательным целым числом
         if int(getattr(obj, "pk")) < 0:
-            raise ValueError("CANNOT UPDATE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
+            raise KeyError("CANNOT UPDATE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
 
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
@@ -138,16 +137,23 @@ class SQLiteRepository(AbstractRepository[T]):
 
         # проверяем, чтобы ключ был неотрицательным целым числом
         if int(pk) < 0:
-            raise ValueError("CANNOT DELETE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
+            raise KeyError("CANNOT DELETE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
 
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
             cur.row_factory = self.dict_factory
 
             cur.execute("DELETE FROM " + self.table_name + " WHERE pk = ? ;", (pk,))
+            #print("deleted:" + str(cur.rowcount))
+
+            # проверяем, что мы не пытаемся удалить несуществующую запись
+            if cur.rowcount == 0:
+                raise KeyError("CANNOT DELETE A NON EXISTING RECORD!\n")
 
         con.close()
 
+
+"""
 objE = SQLiteRepository("../../db/bookkeeper.db", Expense)
 print(objE.fields)
 print(objE.get(10))
@@ -174,4 +180,8 @@ objE.update(Expense(**{'pk': 1, 'amount': 500.0,
 
 objB.update(Budget(**{'pk' : 2, 'name': "Развлечения до конца марта", "amount": 10000, "category": 1, "term": "31-03-2023"}))
 
-objE.delete(9)
+objE.delete(12)
+
+#objE.delete(99)
+
+"""
