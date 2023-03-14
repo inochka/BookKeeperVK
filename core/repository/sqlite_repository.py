@@ -90,11 +90,11 @@ class SQLiteRepository(AbstractRepository[T]):
                         cond += "(" + field + " = ?)"
                         values.append(where.get(field))
 
-            print("SELECT * FROM " + self.table_name + cond + ";")
-            print(values)
+            # print("SELECT * FROM " + self.table_name + cond + ";")
+            # print(values)
             cur.execute("SELECT * FROM " + self.table_name + cond + ";", values)
             rows = cur.fetchall()
-            print(rows)
+            # print(rows)
 
         con.close()
 
@@ -105,7 +105,13 @@ class SQLiteRepository(AbstractRepository[T]):
 
     def update(self, obj: T) -> None:
         """ Обновить данные об объекте. Объект должен содержать поле pk. """
-        print(1)
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.row_factory = self.dict_factory
+            cur.execute("UPDATE " + self.table_name + " SET " + self.table_name + cond + ";", values)
+
+        con.close()
+
 
     def delete(self, pk: int) -> None:
         """ Удалить запись """
@@ -128,3 +134,6 @@ print(objE.get_all({"pk" : 0}))
 objE.add(Expense(**{'pk': 1, 'amount': 500.0,
                     'category': 0, 'expense_date': '13-03-2023',
                     'added_date': '13-03-2023', 'comment': 'Большой саб дня'}))
+
+objC.add(Category(**{'name': "Хозтовары"}))
+objB.add(Budget(**{'name': "Бюджет до конца марта", "amount": 10000, "category": 1, "term": "31-03-2023"}))
