@@ -17,7 +17,7 @@ def test_create_with_full_args_list():
 
 
 def test_create_brief():
-    e = Budget(100, 1, date.today(), )
-    assert e.amount == 100
-    assert e.category == 1
-
+    b = Budget(amount = 100, name="1", date = date.today())
+    assert b.amount == 100
+    assert b.category == 0
+    assert b.name == "1"

@@ -15,7 +15,7 @@ def repo():
 
 
 def test_create_object():
-    c = Category('name')
+    c = Category(name='name')
     assert c.name == 'name'
     assert c.pk == 0
     assert c.parent is None
@@ -30,7 +30,7 @@ def test_reassign():
     """
     class should not be frozen
     """
-    c = Category('name')
+    c = Category(name='name')
     c.name = 'test'
     c.pk = 1
     assert c.name == 'test'
@@ -57,7 +57,7 @@ def test_get_parent(repo):
 def test_get_all_parents(repo):
     parent_pk = None
     for i in range(5):
-        c = Category(str(i), parent=parent_pk)
+        c = Category(name=str(i), parent=parent_pk)
         parent_pk = repo.add(c)
     gen = c.get_all_parents(repo)
     assert isgenerator(gen)
@@ -67,7 +67,7 @@ def test_get_all_parents(repo):
 def test_get_subcategories(repo: MemoryRepository[Category]):
     parent_pk = None
     for i in range(5):
-        c = Category(str(i), parent=parent_pk)
+        c = Category(name=str(i), parent=parent_pk)
         parent_pk = repo.add(c)
     c = repo.get_all({'name': '0'})[0]
     gen = c.get_subcategories(repo)
@@ -77,12 +77,12 @@ def test_get_subcategories(repo: MemoryRepository[Category]):
 
 
 def test_get_subcategories_complicated(repo: MemoryRepository[Category]):
-    root = Category('0')
+    root = Category(name='0')
     root_pk = repo.add(root)
-    repo.add(Category('1', root_pk))
-    pk2 = repo.add(Category('2', root_pk))
-    repo.add(Category('3', pk2))
-    repo.add(Category('4', pk2))
+    repo.add(Category(name='1', parent=root_pk))
+    pk2 = repo.add(Category(name='2', parent=root_pk))
+    repo.add(Category(name='3', parent=pk2))
+    repo.add(Category(name='4', parent=pk2))
 
     gen = root.get_subcategories(repo)
     assert isgenerator(gen)

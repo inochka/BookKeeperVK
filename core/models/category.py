@@ -118,7 +118,7 @@ class Category:
         """
         created: dict[str, Category] = {}
         for child, parent in tree:
-            cat = cls(child, created[parent].pk if parent is not None else None)
+            cat = cls(name=child, parent=created[parent].pk if parent is not None else None)
             repo.add(cat)
             created[child] = cat
         return list(created.values())
