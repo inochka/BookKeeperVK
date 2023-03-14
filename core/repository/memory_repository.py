@@ -8,6 +8,8 @@ from typing import Any
 from core.repository.abstract_repository import AbstractRepository, T
 
 
+# эта хрень работает с готовыми экземплярами классов и ничего не создает
+# так что конструкторы можно менять на свое усмотрение спокойно
 class MemoryRepository(AbstractRepository[T]):
     """
     Репозиторий, работающий в оперативной памяти. Хранит данные в словаре.
@@ -26,7 +28,7 @@ class MemoryRepository(AbstractRepository[T]):
         return pk
 
     def get(self, pk: int) -> T | None:
-        # просто используем метод словаря
+        # просто используем метод словаря, возвращаем объект или ничего
         return self._container.get(pk)
 
     def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
