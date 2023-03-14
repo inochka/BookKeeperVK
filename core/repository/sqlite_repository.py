@@ -2,14 +2,9 @@ from inspect import get_annotations
 import sqlite3
 from core.repository.abstract_repository import AbstractRepository, T
 from core.models.expense import Expense
+from core.models.category import Category
+from core.models.budget import Budget
 from typing import Any
-
-
-def dict_factory(cursor, row):
-    d = {}
-    for idx, col in enumerate(cursor.description):
-        d[col[0]] = row[idx]
-    return d
 
 
 class SQLiteRepository(AbstractRepository[T]):
@@ -28,6 +23,13 @@ class SQLiteRepository(AbstractRepository[T]):
         self.fields.pop('pk')
         self.cls = cls
 
+    # метод, который преобразовывает выхлоп sqlite в словарь
+    def dict_factory(self, cursor, row):
+        d = {}
+        for idx, col in enumerate(cursor.description):
+            d[col[0]] = row[idx]
+        return d
+
     def add(self, obj: T) -> int:
         names = ', '.join(self.fields.keys())
         p = ', '.join("?" * len(self.fields))
@@ -42,18 +44,24 @@ class SQLiteRepository(AbstractRepository[T]):
         con.close()
         return obj.pk
 
-        """ Получить объект по id """
-        #видимо, получаем объект заданного класса
+    """ Получить объект по id """
+    #видимо, получаем объект заданного класса
     def get(self, pk: int) -> T | None:
         # открываем соединение и работаем
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
-            cur.row_factory = dict_factory
-            cur.execute("SELECT * FROM expense WHERE pk = ?;", (pk,))
+            cur.row_factory = self.dict_factory
+            cur.execute("SELECT * FROM " + self.table_name +
+                        " WHERE pk =?;", (pk,))
             rows = cur.fetchall()
             print(rows)
 
         con.close()
+
+        # обрабатываем случай, когда записи с таким ключом не нашлось
+        if not rows:
+            return None
+
         return self.cls(** rows[0])
 
     def get_all(self, where: dict[str, Any] | None = None) -> list[T]:
@@ -62,7 +70,38 @@ class SQLiteRepository(AbstractRepository[T]):
         where - условие в виде словаря {'название_поля': значение}
         если условие не задано (по умолчанию), вернуть все записи
         """
-        print(1)
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.row_factory = self.dict_factory
+
+            # создадим строку условий
+            values = []
+            cond = ""
+            if where != {}:
+                cond = " WHERE"
+                i = 0
+                for field in (list(self.fields.keys()) + ["pk"]):
+                    print(field)
+                    if where.get(field) is not None:
+                        if i != 0:
+                            cond += " AND "
+                            i += 1
+
+                        cond += "(" + field + " = ?)"
+                        values.append(where.get(field))
+
+            print("SELECT * FROM " + self.table_name + cond + ";")
+            print(values)
+            cur.execute("SELECT * FROM " + self.table_name + cond + ";", values)
+            rows = cur.fetchall()
+            print(rows)
+
+        con.close()
+
+        if not rows:
+            return []
+        # возвращаем список объектов
+        return [self.cls(** row) for row in rows]
 
     def update(self, obj: T) -> None:
         """ Обновить данные об объекте. Объект должен содержать поле pk. """
@@ -73,7 +112,19 @@ class SQLiteRepository(AbstractRepository[T]):
         print(1)
 
 
-obj = SQLiteRepository("../../db/bookkeeper.db", Expense)
-print(obj.fields)
-print(obj.get(0))
-### !!! видимо, мы при расходе помещаем сразу во все 3 таблицы данные?? или как?
+objE = SQLiteRepository("../../db/bookkeeper.db", Expense)
+print(objE.fields)
+print(objE.get(10))
+objC = SQLiteRepository("../../db/bookkeeper.db", Category)
+print(objC.fields)
+print(objC.get(0))
+objB = SQLiteRepository("../../db/bookkeeper.db", Budget)
+print(objB.fields)
+print(objB.get(0))
+print(', '.join("?" * 5))
+
+print(objE.get_all({"pk" : 0}))
+
+objE.add(Expense(**{'pk': 1, 'amount': 500.0,
+                    'category': 0, 'expense_date': '13-03-2023',
+                    'added_date': '13-03-2023', 'comment': 'Большой саб дня'}))

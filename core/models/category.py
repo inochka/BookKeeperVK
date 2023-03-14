@@ -16,8 +16,22 @@ class Category:
     У категорий верхнего уровня parent = None
     """
     name: str
-    parent: int | None = None
+    parent: int | None
     pk: int = 0
+
+    # аналогично Expense, пишем свой конструктор , чтобы аргументы можно было передавать в виде словаря
+
+    def __init__(self, **kwargs):
+
+        self.parent = None
+        self.pk: int = 0
+
+        # если передали, то переопределяем значения по умолчанию
+        # если делать инит, то почему-то значения по умолчанию
+        # в аннотациях не определяются, так что приходится здесь
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
     def get_parent(self,
                    repo: AbstractRepository['Category']) -> 'Category | None':

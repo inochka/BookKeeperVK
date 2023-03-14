@@ -26,10 +26,10 @@ class Expense:
 
     amount: int
     category: int
-    expense_date: datetime = field(default_factory=datetime.now)
-    added_date: datetime = field(default_factory=datetime.now)
-    comment: str = ''
-    pk: int = 0
+    expense_date: datetime
+    added_date: datetime
+    comment: str
+    pk: int
 
     def __init__(self, **kwargs):
         """self.pk = pk
@@ -37,6 +37,15 @@ class Expense:
         self.expense_date = expense_date
         self.added_date = added_date
         self.comment = comment"""
+
+        self.expense_date = field(default_factory=datetime.now)
+        self.added_date = field(default_factory=datetime.now)
+        self.comment = ''
+        self.pk = 0
+
+        # если передали, то переопределяем значения по умолчанию
+        # если делать инит, то почему-то значения по умолчанию
+        # в аннотациях не определяются, так что приходится здесь
 
         for key, value in kwargs.items():
             setattr(self, key, value)
