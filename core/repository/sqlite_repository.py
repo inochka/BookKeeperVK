@@ -105,18 +105,48 @@ class SQLiteRepository(AbstractRepository[T]):
 
     def update(self, obj: T) -> None:
         """ Обновить данные об объекте. Объект должен содержать поле pk. """
+
+        # проверяяем, чтобы ключ присутствовал
+        if getattr(obj, "pk") is None:
+            raise ValueError("CANNOT UPDATE A RECORD! RECEIVED OBJECT DOESN'T HAVE PRIMARY KEY!\n")
+
+        # проверяем, чтобы ключ был неотрицательным целым числом
+        if int(getattr(obj, "pk")) < 0:
+            raise ValueError("CANNOT UPDATE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
+
         with sqlite3.connect(self.db_file) as con:
             cur = con.cursor()
             cur.row_factory = self.dict_factory
-            cur.execute("UPDATE " + self.table_name + " SET " + self.table_name + cond + ";", values)
+
+            # создаем названия полей, pk и так нет по построению
+            names = ' = ?, '.join(self.fields.keys()) + " = ?"
+            # создаем ? для дальнейшей вставки, pk и так нет по построению
+            p = ', '.join("?" * len(self.fields))
+
+            # print(names)
+
+            values = [getattr(obj, x) for x in self.fields]
+            # print("UPDATE " + self.table_name + " SET " + names + " WHERE pk = ? ;")
+            # print(values + [str(obj.pk)])
+
+            cur.execute("UPDATE " + self.table_name + " SET " + names + " WHERE pk = ? ;", values + [str(obj.pk)])
 
         con.close()
 
 
     def delete(self, pk: int) -> None:
-        """ Удалить запись """
-        print(1)
 
+        # проверяем, чтобы ключ был неотрицательным целым числом
+        if int(pk) < 0:
+            raise ValueError("CANNOT DELETE A RECORD! RECEIVED OBJECT HAS INVALID PRIMARY KEY!\n")
+
+        with sqlite3.connect(self.db_file) as con:
+            cur = con.cursor()
+            cur.row_factory = self.dict_factory
+
+            cur.execute("DELETE FROM " + self.table_name + " WHERE pk = ? ;", (pk,))
+
+        con.close()
 
 objE = SQLiteRepository("../../db/bookkeeper.db", Expense)
 print(objE.fields)
@@ -137,3 +167,11 @@ objE.add(Expense(**{'pk': 1, 'amount': 500.0,
 
 objC.add(Category(**{'name': "Хозтовары"}))
 objB.add(Budget(**{'name': "Бюджет до конца марта", "amount": 10000, "category": 1, "term": "31-03-2023"}))
+
+objE.update(Expense(**{'pk': 1, 'amount': 500.0,
+                    'category': 0, 'expense_date': '14-03-2023',
+                    'added_date': '15-03-2023', 'comment': 'Большой 1 саб дня'}))
+
+objB.update(Budget(**{'pk' : 2, 'name': "Развлечения до конца марта", "amount": 10000, "category": 1, "term": "31-03-2023"}))
+
+objE.delete(9)
