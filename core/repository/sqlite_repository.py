@@ -13,7 +13,7 @@ class SQLiteRepository(AbstractRepository[T]):
     table_name: str
     fields: dict
 
-    def __init__(self, db_file: str, cls: type) -> None:
+    def __init__(self, cls: type, db_file: str = "../../db/bookkeeper.db") -> None:
         self.db_file = db_file
         self.table_name = cls.__name__.lower()
         # имя таблицы должно быть ловеркейсом от имени класса, ок
@@ -76,7 +76,8 @@ class SQLiteRepository(AbstractRepository[T]):
             # создадим строку условий
             values = []
             cond = ""
-            if where != {}:
+            # по умолчанию where - это  None
+            if where is not None:
                 cond = " WHERE"
                 i = 0
                 for field in (list(self.fields.keys()) + ["pk"]):
@@ -88,6 +89,7 @@ class SQLiteRepository(AbstractRepository[T]):
 
                         cond += "(" + field + " = ?)"
                         values.append(where.get(field))
+
 
             # print("SELECT * FROM " + self.table_name + cond + ";")
             # print(values)
@@ -154,13 +156,13 @@ class SQLiteRepository(AbstractRepository[T]):
 
 
 """
-objE = SQLiteRepository("../../db/bookkeeper.db", Expense)
+objE = SQLiteRepository(Expense)
 print(objE.fields)
 print(objE.get(10))
-objC = SQLiteRepository("../../db/bookkeeper.db", Category)
+objC = SQLiteRepository(Category)
 print(objC.fields)
 print(objC.get(0))
-objB = SQLiteRepository("../../db/bookkeeper.db", Budget)
+objB = SQLiteRepository(Budget)
 print(objB.fields)
 print(objB.get(0))
 print(', '.join("?" * 5))
@@ -180,8 +182,9 @@ objE.update(Expense(**{'pk': 1, 'amount': 500.0,
 
 objB.update(Budget(**{'pk' : 2, 'name': "Развлечения до конца марта", "amount": 10000, "category": 1, "term": "31-03-2023"}))
 
-objE.delete(12)
+#objE.delete(12)
 
 #objE.delete(99)
+
 
 """
