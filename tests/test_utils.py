@@ -16,7 +16,7 @@ from textwrap import dedent
 
 import pytest
 
-from core.utils import read_tree
+from core.view.utils import read_tree
 
 
 def test_create_tree():

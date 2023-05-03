@@ -5,6 +5,8 @@ from core.models.expense import Expense
 from core.models.category import Category
 from core.models.budget import Budget
 from typing import Any
+import core.constants as constants
+
 
 class SQLiteRepository(AbstractRepository[T]):
 
@@ -13,7 +15,7 @@ class SQLiteRepository(AbstractRepository[T]):
     table_name: str
     fields: dict
 
-    def __init__(self, cls: type, db_file: str = "../../db/bookkeeper.db") -> None:
+    def __init__(self, cls: type, db_file: str = constants.DB_PATH) -> None:
         self.db_file = db_file
         self.table_name = cls.__name__.lower()
         # имя таблицы должно быть ловеркейсом от имени класса, ок
@@ -21,6 +23,9 @@ class SQLiteRepository(AbstractRepository[T]):
         # и поля должны быть в точности такие же, как и аттрибуты
         self.fields.pop('pk')
         self.cls = cls
+
+    def create_db(self):
+        """метод, который будет создавать бд при первой инициализации программы"""
 
     # метод, который преобразовывает выхлоп sqlite в словарь
     def dict_factory(self, cursor, row):
@@ -133,7 +138,6 @@ class SQLiteRepository(AbstractRepository[T]):
             cur.execute("UPDATE " + self.table_name + " SET " + names + " WHERE pk = ? ;", values + [str(obj.pk)])
 
         con.close()
-
 
     def delete(self, pk: int) -> None:
 
